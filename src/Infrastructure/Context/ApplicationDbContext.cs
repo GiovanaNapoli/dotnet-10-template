@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Domain.Entities.Common;
 using Domain.Entities.Users;
@@ -45,11 +46,21 @@ namespace Infrastructure.Context
 
             foreach (var entry in ChangeTracker.Entries<BaseAuditableEntity>())
             {
+                const string defaultUser = "SYSTEM";
+
                 if (entry.State == EntityState.Added)
+                {
                     entry.Entity.CreatedAt = now;
+                    if (string.IsNullOrWhiteSpace(entry.Entity.CreatedBy))
+                        entry.Entity.CreatedBy = defaultUser;
+                }
 
                 if (entry.State is EntityState.Added or EntityState.Modified)
+                {
                     entry.Entity.UpdatedAt = now;
+                    if (string.IsNullOrWhiteSpace(entry.Entity.UpdatedBy))
+                        entry.Entity.UpdatedBy = defaultUser;
+                }
             }
         }
 

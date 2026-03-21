@@ -19,9 +19,9 @@ namespace Application
             services.AddMediatR(config =>
             {
                 config.RegisterServicesFromAssembly(typeof(DependencyInjection).Assembly);
-                config.AddBehavior(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
                 config.AddBehavior(typeof(IPipelineBehavior<,>), typeof(AuditBehavior<,>));
-                
+                config.AddBehavior(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
+
             });
             // Add other service registrations here
 

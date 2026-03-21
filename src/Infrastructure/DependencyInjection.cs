@@ -21,39 +21,40 @@ namespace Infrastructure
 {
     public static class DependencyInjection
     {
-        public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
+        public static IServiceCollection AddInfrastructure(
+    this IServiceCollection services,
+    IConfiguration configuration)
         {
             var connectionString = configuration.GetConnectionString("DefaultConnection");
-            // Register UnitOfWork and generic repository
+
             services.AddDbContext<ApplicationDbContext>((sp, options) =>
             {
                 options.AddInterceptors(sp.GetServices<ISaveChangesInterceptor>());
                 options.UseSqlServer(connectionString);
             });
 
-            // Identity setup (if needed)
             services.AddIdentity<ApplicationUser, IdentityRole>(options =>
-            {
-                options.Password.RequireDigit = true;
-                options.Password.RequiredLength = 8;
-                options.Password.RequireUppercase = true;
-                options.Password.RequireNonAlphanumeric = false;
-            })
+                {
+                    options.Password.RequireDigit = true;
+                    options.Password.RequiredLength = 8;
+                    options.Password.RequireUppercase = true;
+                    options.Password.RequireNonAlphanumeric = false;
+                })
                 .AddEntityFrameworkStores<ApplicationDbContext>()
                 .AddDefaultTokenProviders();
 
-            // JWT
             services.AddAuthentication(options =>
-            {
-                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-            })
+                {
+                    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                })
                 .AddJwtBearer(options =>
                 {
                     options.TokenValidationParameters = new TokenValidationParameters
                     {
                         ValidateIssuerSigningKey = true,
-                        IssuerSigningKey = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(configuration["Jwt:SecretKey"]!)),
+                        IssuerSigningKey = new SymmetricSecurityKey(
+                            System.Text.Encoding.UTF8.GetBytes(configuration["Jwt:SecretKey"]!)),
                         ValidateIssuer = true,
                         ValidIssuer = configuration["Jwt:Issuer"],
                         ValidateAudience = true,
@@ -63,46 +64,37 @@ namespace Infrastructure
                     };
                 });
 
-            // Register repositories and UnitOfWork
-            services.AddScoped<DbConnector>();
-            services.AddScoped<IUnitOfWork, UnitOfWork>();
+            // Repositories
             services.AddScoped(typeof(IRepositoryBase<>), typeof(RepositoryBase<>));
             services.AddRepositories();
+
+            // UnitOfWork e outros
+            services.AddScoped<DbConnector>();
+            services.AddScoped<IUnitOfWork, UnitOfWork>();
 
             // Services
             services.AddScoped<IIdentityService, IdentityService>();
             services.AddScoped<IJwtService, JwtService>();
             services.AddScoped<IDomainEventDispatcher, DomainEventDispatcher>();
 
-            // If there are concrete repositories, register them here (e.g. UserRepository)
-            // services.AddScoped<IUserRepository, UserRepository>();
-
             return services;
         }
 
         private static IServiceCollection AddRepositories(this IServiceCollection services)
         {
-            services.AddScoped(typeof(IRepositoryBase<>), typeof(RepositoryBase<>));
+            // Aponta direto para o assembly da Infrastructure — determinístico
+            var assembly = typeof(DependencyInjection).Assembly;
 
-            var assemblies = AppDomain.CurrentDomain.GetAssemblies();
+            var repositoryTypes = assembly.GetTypes()
+                .Where(t => t.Name.EndsWith("Repository") && t.IsClass && !t.IsAbstract)
+                .ToList();
 
-            foreach (var assembly in assemblies)
+            foreach (var implementationType in repositoryTypes)
             {
-                var types = assembly.GetTypes()
-                    .Where(t => t.Name.EndsWith("Repository") && t.IsClass && !t.IsAbstract)
-                    .ToList();
+                var interfaceType = implementationType.GetInterface($"I{implementationType.Name}");
 
-                foreach (var implementationType in types)
-                {
-                    var interfaceType = implementationType.GetInterface($"I{implementationType.Name}");
-
-                    if (interfaceType != null)
-                    {
-                        services.AddTransient(interfaceType, implementationType);
-                    }
-                }
-
-                return services;
+                if (interfaceType != null)
+                    services.AddScoped(interfaceType, implementationType);
             }
 
             return services;

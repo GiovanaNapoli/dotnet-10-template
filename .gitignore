@@ -1,0 +1,45 @@
+# Build results
+bin/
+obj/
+
+# User secrets
+**/secrets.json
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Rider
+.idea/
+
+# VS Code
+.vscode/
+
+# NuGet
+*.nupkg
+*.snupkg
+.nuget/
+packages/
+
+# .NET
+*.dll
+*.exe
+*.pdb
+*.cache
+
+# Logs
+*.log
+logs/
+
+# Environment
+.env
+.env.*
+appsettings.Development.json
+appsettings.Local.json
+
+# OS
+.DS_Store
+Thumbs.db

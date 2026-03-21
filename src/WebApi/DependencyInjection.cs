@@ -25,7 +25,11 @@ namespace WebApi
             {
                 options.AddPolicy(DefaultCorsPolicy, policy =>
                 {
-                    policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
+                    var origins = configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? Array.Empty<string>();
+                    policy.WithOrigins(origins)
+                          .AllowAnyHeader()
+                          .AllowAnyMethod()
+                          .AllowCredentials();
                 });
             });
 

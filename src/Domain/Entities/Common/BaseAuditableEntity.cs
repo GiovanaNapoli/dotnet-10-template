@@ -14,7 +14,7 @@ namespace Domain.Entities.Common
         public string? UpdatedBy { get; set; }
         public DateTime? UpdatedAt { get; set; }
 
-        private readonly List<IDomainEvent> _domainEvents = [];
+        private readonly List<IDomainEvent> _domainEvents = new List<IDomainEvent>();
         public IReadOnlyCollection<IDomainEvent> DomainEvents => _domainEvents.AsReadOnly();
 
         protected void AddDomainEvent(IDomainEvent domainEvent)

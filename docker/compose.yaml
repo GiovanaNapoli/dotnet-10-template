@@ -1,0 +1,18 @@
+version: "3.9"
+
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: sqlserver
+    environment:
+      ACCEPT_EULA: "Y"
+      SA_PASSWORD: "SuaSenhaForte123!"   # mínimo 8 chars, com maiúscula, minúscula, número e símbolo
+      MSSQL_PID: "Developer"
+    ports:
+      - "1434:1433"      # porta 1434 no host -> 1433 no container
+    volumes:
+      - sqlserver_data:/var/opt/mssql
+    restart: unless-stopped
+
+volumes:
+  sqlserver_data:

@@ -76,6 +76,7 @@ namespace Infrastructure
             services.AddScoped<IIdentityService, IdentityService>();
             services.AddScoped<IJwtService, JwtService>();
             services.AddScoped<IDomainEventDispatcher, DomainEventDispatcher>();
+            services.AddScoped<IEmailService, EmailService>();
 
             return services;
         }

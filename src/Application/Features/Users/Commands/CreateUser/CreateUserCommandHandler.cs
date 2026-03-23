@@ -4,9 +4,11 @@ using System.Linq;
 using System.Threading.Tasks;
 using Domain.Entities.Common;
 using Domain.Entities.Users;
+using AutoMapper;
 using Domain.Interfaces.Repositories;
 using Domain.Interfaces.Services;
 using MediatR;
+using Application.Common;
 
 namespace Application.Features.Users.Commands.CreateUser
 {
@@ -14,11 +16,13 @@ namespace Application.Features.Users.Commands.CreateUser
     {
         private readonly IUserRepository _userRepository;
         private readonly IIdentityService _identityService;
+        private readonly IMapper _mapper;
 
-        public CreateUserCommandHandler(IUserRepository userRepository, IIdentityService identityService)
+        public CreateUserCommandHandler(IUserRepository userRepository, IIdentityService identityService, IMapper mapper)
         {
             _userRepository = userRepository;
             _identityService = identityService;
+            _mapper = mapper;
         }
 
         public async Task<ResponseBase> Handle(CreateUserCommand request, CancellationToken cancellationToken)
@@ -29,7 +33,11 @@ namespace Application.Features.Users.Commands.CreateUser
                 return ResponseBase.Failure("Email already in use.");
             }
 
-            var user = User.Create(request.User.Name, request.User.Email, request.User.ProfilePicture);
+            var profilePicture = request.User.ProfilePicture is not null
+                ? _mapper.Map<ImageFile?>(request.User.ProfilePicture)
+                : null;
+
+            var user = User.Create(request.User.Name, request.User.Email, profilePicture);
             await _userRepository.AddAsync(user, cancellationToken);
 
             var (success, error) = await _identityService.RegisterAsync(request.User.Email, request.User.Password, user.Id);

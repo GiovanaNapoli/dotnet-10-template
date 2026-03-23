@@ -20,7 +20,7 @@ namespace Infrastructure.Context
             _dispatcher = dispatcher;
         }
 
-        public DbSet<User> Users { get; set; }
+        public new DbSet<User> Users { get; set; }
 
         public override async Task<int> SaveChangesAsync(CancellationToken ct = default)
         {

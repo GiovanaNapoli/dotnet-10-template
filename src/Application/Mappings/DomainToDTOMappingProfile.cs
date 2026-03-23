@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Application.DTOs.Common;
 using Application.DTOs.Users;
 using AutoMapper;
 using Domain.Entities.Common;
@@ -15,6 +16,7 @@ namespace Application.Mappings
         {
             CreateMap<User, UsersDto>().ReverseMap();
             CreateMap<CreateUserDto, User>().ReverseMap();
+            CreateMap<ImageFile, ImageFileDto>().ReverseMap();
         }
     }
 }

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
-namespace Domain.Entities.Common
+namespace Application.Common
 {
     public class ResponseBase
     {
@@ -12,26 +12,26 @@ namespace Domain.Entities.Common
         public bool IsSuccess { get; private init; }
 
         [JsonPropertyName("errors")]
-        public IReadOnlyList<string> Errors { get; private init; } = [];
+        public IReadOnlyList<string> Errors { get; private init; } = Array.Empty<string>();
 
         [JsonPropertyName("messages")]
-        public IReadOnlyList<string> Messages { get; private init; } = [];
+        public IReadOnlyList<string> Messages { get; private init; } = Array.Empty<string>();
 
         [JsonPropertyName("warnings")]
-        public IReadOnlyList<string> Warnings { get; private init; } = [];
+        public IReadOnlyList<string> Warnings { get; private init; } = Array.Empty<string>();
 
         private ResponseBase() { }
 
         public static ResponseBase Success(IEnumerable<string>? messages = null) => new()
         {
             IsSuccess = true,
-            Messages = messages?.ToList() ?? []
+            Messages = (IReadOnlyList<string>)(messages?.ToList() ?? new List<string>())
         };
 
         public static ResponseBase Failure(string error) => new()
         {
             IsSuccess = false,
-            Errors = [error]
+            Errors = new[] { error }
         };
 
         public static ResponseBase Failure(IEnumerable<string> errors)

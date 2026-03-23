@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Domain.Entities.Common;
+using Application.DTOs.Common;
 
 namespace Application.DTOs.Users
 {
@@ -10,7 +10,7 @@ namespace Application.DTOs.Users
     {
         public string Name { get; set; } = null!;
         public string Email { get; set; } = null!;
-        public ImageFile? ProfilePicture { get; set; }
+        public ImageFileDto? ProfilePicture { get; set; }
         public string Password { get; set; } = null!;
     }
 }

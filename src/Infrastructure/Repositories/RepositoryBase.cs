@@ -1,83 +1,73 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Threading;
-using Domain.Interfaces;
-using Infrastructure.Connector;
+using Domain.Entities.Common;
+using Domain.Interfaces.Repositories;
 using Infrastructure.Context;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Domain.Interfaces.Repositories;
 
-namespace Infrastructure.Repositories
+namespace Infrastructure.Repositories;
+
+public class RepositoryBase<T> : IRepositoryBase<T> where T : BaseAuditableEntity
 {
-    public class RepositoryBase<T> : DbConnector, IRepositoryBase<T> where T : class
+    protected readonly ApplicationDbContext _context;
+    protected readonly DbSet<T> _dbSet;
+
+    public RepositoryBase(ApplicationDbContext context)
     {
-        public readonly ApplicationDbContext _context;
+        _context = context;
+        _dbSet = context.Set<T>();
+        // Removido: QueryTrackingBehavior.NoTracking global
+    }
 
-        public RepositoryBase(ApplicationDbContext context, IConfiguration configuration) : base(configuration)
-        {
-            _context = context;
-            _context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
-        }
+    public async Task<T> AddAsync(T entity, CancellationToken ct = default)
+    {
+        await _dbSet.AddAsync(entity, ct);
+        return entity;
+    }
 
-        // Create
-        public async Task<T> AddAsync(T entity, CancellationToken ct = default)
-        {
-            await _context.Set<T>().AddAsync(entity, ct);
-            return entity;
-        }
+    public async Task AddRangeAsync(IEnumerable<T> entities, CancellationToken ct = default)
+        => await _dbSet.AddRangeAsync(entities, ct);
 
-        public async Task AddRangeAsync(IEnumerable<T> entities, CancellationToken ct = default)
-        {
-            await _context.Set<T>().AddRangeAsync(entities, ct);
-        }
+    // AsNoTracking apenas nas queries de leitura — não afeta Update/Delete
+    public async Task<T?> GetByIdAsync(Guid id, CancellationToken ct = default)
+        => await _dbSet
+            .AsNoTracking()
+            .FirstOrDefaultAsync(e => e.Id == id, ct);
 
-        // Read
-        public async Task<T?> GetByIdAsync(Guid id, CancellationToken ct = default)
-        {
-            var value = await _context.Set<T>().FindAsync(new object[] { id }, ct);
-            return value;
-        }
+    public async Task<IEnumerable<T>> GetAllAsync(CancellationToken ct = default)
+        => await _dbSet
+            .AsNoTracking()
+            .ToListAsync(ct);
 
-        public async Task<IEnumerable<T>> GetAllAsync(CancellationToken ct = default)
-        {
-            return await _context.Set<T>().ToListAsync(ct);
-        }
+    // Update e Delete sem AsNoTracking — EF Core precisa rastrear para persistir
+    public void Update(T entity)
+    {
+        _dbSet.Attach(entity);
+        _context.Entry(entity).State = EntityState.Modified;
+    }
 
-        // Update
-        public void Update(T entity)
+    public void UpdateRange(IEnumerable<T> entities)
+    {
+        foreach (var entity in entities)
         {
-            _context.Set<T>().Update(entity);
+            _dbSet.Attach(entity);
+            _context.Entry(entity).State = EntityState.Modified;
         }
+    }
 
-        public void UpdateRange(IEnumerable<T> entities)
-        {
-            _context.Set<T>().UpdateRange(entities);
-        }
+    public void Delete(T entity)
+        => _dbSet.Remove(entity);
 
-        // Delete
-        public void Delete(T entity)
-        {
-            _context.Set<T>().Remove(entity);
-        }
+    public void DeleteRange(IEnumerable<T> entities)
+        => _dbSet.RemoveRange(entities);
 
-        public void DeleteRange(IEnumerable<T> entities)
-        {
-            _context.Set<T>().RemoveRange(entities);
-        }
+    public async Task DeleteAsync(T entity, CancellationToken ct = default)
+    {
+        await Task.CompletedTask;
+        _dbSet.Remove(entity);
+    }
 
-        public Task DeleteAsync(T entity, CancellationToken ct = default)
-        {
-            _context.Set<T>().Remove(entity);
-            return Task.CompletedTask;
-        }
-
-        public Task DeleteRangeAsync(IEnumerable<T> entities, CancellationToken ct = default)
-        {
-            _context.Set<T>().RemoveRange(entities);
-            return Task.CompletedTask;
-        }
+    public async Task DeleteRangeAsync(IEnumerable<T> entities, CancellationToken ct = default)
+    {
+        await Task.CompletedTask;
+        _dbSet.RemoveRange(entities);
     }
 }

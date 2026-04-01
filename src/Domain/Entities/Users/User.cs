@@ -19,6 +19,12 @@ namespace Domain.Entities.Users
 
         public static User Create(string name, string email, ImageFile? profilePicture = null)
         {
+            if (string.IsNullOrEmpty(email) || !email.Contains("@"))
+                throw new ArgumentException("Invalid email format.", nameof(email));
+            
+            if (string.IsNullOrEmpty(name))
+                throw new ArgumentException("Name cannot be empty.", nameof(name));
+            
             var user = new User {Name = name, Email = email, ProfilePicture = profilePicture};
             user.AddDomainEvent(new UserCreatedEvent(user));
             return user;

@@ -95,3 +95,15 @@ public class {Action}{Entity}CommandValidator : AbstractValidator<{Action}{Entit
 ```
 AuditBehavior → ValidationBehavior → UnitOfWorkBehavior → Handler
 ```
+
+## TDD — Write tests first
+
+Before implementing, create the test file in `tests/Application.UnitTests/{Entity}s/`:
+
+```
+1. RED   → Write Create{Entity}HandlerTests with failing assertions
+2. GREEN → Implement the Handler to make tests pass
+3. REFACTOR → Clean up
+```
+
+See `tests.md` for full test templates.

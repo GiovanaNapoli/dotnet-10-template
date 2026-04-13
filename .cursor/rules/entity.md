@@ -122,3 +122,15 @@ SaveChangesAsync() in DbContext
 
 XCreatedEventHandler.Handle()           ← Application reacts
 ```
+
+## TDD — Write tests first
+
+Before implementing the entity, create the test file in `tests/Domain.UnitTests/Entities/`:
+
+```
+1. RED   → Write {Entity}Tests with failing assertions
+2. GREEN → Implement the Entity to make tests pass
+3. REFACTOR → Clean up
+```
+
+See `tests.md` for full test templates.

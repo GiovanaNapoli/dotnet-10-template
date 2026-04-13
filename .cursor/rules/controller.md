@@ -111,3 +111,15 @@ public class {Entity}sController : ControllerBase
 [HttpPost("register")]
 public async Task<IActionResult> Register(...)
 ```
+
+## TDD — Write tests first
+
+Before implementing the controller, create the test file in `tests/WebApi.UnitTests/Controllers/`:
+
+```
+1. RED   → Write {Entity}sControllerTests with failing assertions
+2. GREEN → Implement the Controller to make tests pass
+3. REFACTOR → Clean up
+```
+
+See `tests.md` for full test templates.

@@ -92,3 +92,15 @@ public record Get{Entity}sQuery(
 ```csharp
 CreateMap<{Entity}, {Entity}Dto>();
 ```
+
+## TDD — Write tests first
+
+Before implementing, create the test file in `tests/Application.UnitTests/{Entity}s/`:
+
+```
+1. RED   → Write Get{Entity}HandlerTests with failing assertions
+2. GREEN → Implement the Handler to make tests pass
+3. REFACTOR → Clean up
+```
+
+See `tests.md` for full test templates.
